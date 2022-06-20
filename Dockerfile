@@ -1,20 +1,14 @@
-FROM php:8.1.7-cli-buster
+FROM php:7.4.27-cli-buster
 
 RUN apt-get update && apt-get -y install git libjpeg-dev libmagickwand-dev \
     libmemcached-dev libpng-dev libpq-dev libsqlite3-dev libxml2-dev \
     libzip-dev uuid-dev unzip wget zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-configure gd --with-jpeg && docker-php-ext-install bcmath \
-    gd intl pcntl soap sockets zip
-RUN git clone https://github.com/nikic/php-ast.git && cd php-ast && phpize \
-    && ./configure && make && make install && cd ../ && rm -rf php-ast \
-    && git clone https://github.com/krakjoe/apcu.git && cd apcu && phpize \
-    && ./configure && make && make install && cd ../ && rm -rf apcu \
-    && git clone https://github.com/php-memcached-dev/php-memcached.git && cd php-memcached && phpize \
-    && ./configure && make && make install && cd ../ && rm -rf php-memcached \
-    && git clone https://github.com/php/pecl-networking-uuid.git && cd pecl-networking-uuid && phpize \
-    && ./configure && make && make install && cd ../ && rm -rf pecl-networking-uuid \
-    && docker-php-ext-enable apcu ast memcached uuid
+    gd intl opcache pcntl pdo pdo_mysql pdo_pgsql pdo_sqlite soap sockets zip
+RUN pecl install apcu-5.1.21 ast-1.0.16 imagick-3.6.0 memcached-3.1.5 \
+    mongodb-1.12.0 uuid-1.2.0 redis-5.3.5 && docker-php-ext-enable ast apcu \
+    imagick memcached mongodb uuid redis
 
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini && \
     rm $PHP_INI_DIR/php.ini-development && \
