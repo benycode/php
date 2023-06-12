@@ -1,4 +1,4 @@
-FROM php:8.1.7-cli-buster
+FROM php:8.2.4-cli-buster
 
 RUN apt-get update && apt-get -y install git libjpeg-dev libmagickwand-dev \
     libmemcached-dev libpng-dev libpq-dev libsqlite3-dev libxml2-dev \
@@ -6,9 +6,14 @@ RUN apt-get update && apt-get -y install git libjpeg-dev libmagickwand-dev \
     rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-configure gd --with-jpeg && docker-php-ext-install bcmath \
     gd intl opcache pcntl pdo pdo_mysql pdo_pgsql pdo_sqlite soap sockets zip
-RUN pecl install apcu-5.1.21 ast-1.0.16 imagick-3.7.0 memcached-3.2.0 \
-    mongodb-1.13.0 uuid-1.2.0 redis-5.3.7 && docker-php-ext-enable ast apcu \
-    imagick memcached mongodb uuid redis
+RUN pecl install apcu-5.1.22 ast-1.1.0 imagick-3.7.0 mongodb-1.15.1 \
+    && git clone https://github.com/php-memcached-dev/php-memcached.git && cd php-memcached && phpize \
+    && ./configure && make && make install && cd ../ && rm -rf php-memcached \
+    && git clone https://github.com/php/pecl-networking-uuid.git && cd pecl-networking-uuid && phpize \
+    && ./configure && make && make install && cd ../ && rm -rf pecl-networking-uuid \
+    && git clone https://github.com/phpredis/phpredis.git && cd phpredis && phpize \
+    && ./configure && make && make install && cd ../ && rm -rf phpredis \
+    && docker-php-ext-enable apcu ast imagick memcached mongodb uuid redis
 
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini && \
     rm $PHP_INI_DIR/php.ini-development && \
